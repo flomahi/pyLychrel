@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 @author: Florian Mahiddini - EIGSI - mahiddini@eigsi.fr
-@date: Nov. 2023
+@date: July 2024
 @version: 0.4 
 
 Release notes: 
@@ -91,124 +91,7 @@ class Number():
         else:
             return self.digits == self.digits[::-1]
 
-# **** GENERIC FUNCTIONS DEFINITION
-
-def add_single_digit(*digits):
-    """
-    Single digit addition (intermediate step of the reverse-and-add operation)
-    The function takes an arbitrary numbers of digits and returns the sum of
-    their respective positions within the CHARACTERS_SET string used to 
-    represent numbers
-
-    Parameters
-    ----------
-    *digits : List of characters
-        digits to add
-
-    Returns
-    -------
-    add_at_idx : INT
-        algebric sum of digits (in base 10)
-        
-    Example
-    -------
-    add_single_digit('1','F','6') will return 1+15+6 = 22 since:
-    '1' is at index 1 in CHARACTERS_SET
-    'F' is at index 15 in CHARACTERS_SET
-    '6' is at index 6 in CHARACTERS_SET
-    
-    """
-    add_at_idx = 0
-    for element in digits:
-        add_at_idx += CHARACTERS_SET_DICT[element]
-    
-    return add_at_idx
-
-
-def increment(number):
-    """
-    The function adds 1 to a Number instance in its specified base
-
-    Parameters
-    ----------
-    number : Number's instance'
-    
-    Returns
-    -------
-    result : Number's instance
-        unit-incremented number
-
-    """
-    # initialize new number
-    numlength = len(number.digits)
-    carry = '0'
-    result = ['0']*(numlength + 1)
-    
-    # Compute the addition at the least significant digit
-    add_at_zero = add_single_digit(number.digits[-1], '1')
-    
-    # Initialize the first addition hold
-    if add_at_zero >= number.base:
-        carry = '1'
-        
-        # Iterate through each digit of the number
-        for index, value in enumerate(number.digits):
-            i_index = (numlength - 1) - index # inverse index
-            
-            # Calculate the addition at the current index
-            add_at_index = add_single_digit(number.digits[i_index],result[i_index], carry)
-            
-            # Adjust the result and carry if necessary
-            if add_at_index >= number.base:
-                result[i_index+1] = CHARACTERS_SET[add_at_index % number.base]
-                result[i_index] = CHARACTERS_SET[CHARACTERS_SET_DICT[result[i_index]] + 1]
-            else:
-                result[i_index+1] = CHARACTERS_SET[add_at_index]
-                carry = '0'
-        
-        # Remove leading zero if present
-        if result[0] == '0':
-            result.pop(0)
-    else:
-        # If no carry is needed, simply copy the digits and replace the last digit
-        result = list(number.digits)
-        result[-1] = CHARACTERS_SET[add_at_zero]
-    
-    # Return the result as a new Number object
-    return Number(''.join(result),number.base)
-    
-
-def init_seeds(start, nb_iter, base):
-    """
-    Create a list of unit-incremented Number instances in a specified base
-
-    Parameters
-    ----------
-    start : String
-        list of digits representing the number to increment
-    nb_iter : Int
-        Number of succesive increment from the first seed
-    base : int
-        base of numbers
-
-    Returns
-    -------
-    seeds : List of Number instances
-        
-        
-    Example
-    -------
-    init_seed('1',100,16) will return a list of 100 numbers, unit-incremented in
-    base 16, eg. ['1','2', ... ,'5F','60','61','62','63','64','65']
-        
-
-    """
-    seeds = [Number(start, base)]
-    for idx in range(1,nb_iter+1):
-        seeds.append(increment(seeds[idx-1]))
-    
-    return seeds        
-
+# **** I/O FUNCTIONS
 
 def save_sequence_ascii(filename, seeds_list,  **kwargs):
     """
@@ -306,9 +189,169 @@ def export_graph(sequence_filename, graph_filename):
     nx.write_graphml(thread_graph,graph_filename)
     #return thread_graph
 
+def print_list_in_ASCII(filename, lychrel_candidates, mode ='w+'):
+    """
+    Saves list of Lychrel candidates in ASCII file
+
+    Parameters
+    ----------
+    filename : STRING
+        Name of the file where the results will be stored
     
+    lychrel_candidates : DICT of LIST
+        
+    mode : STRING
+        
+
+    Returns
+    -------
+    None.
+
+    """
+    with open(filename, mode) as file:
+        for base, seed_candidates in lychrel_candidates.items():
+            file.write("*** Lychrel candidates in base: {}\n".format(base))
+            file.write("*** Number of candidates: {}\n".format(len(seed_candidates)))
+            file.write(",".join(str(seeds) for seeds in seed_candidates)+"\n")
+            file.write("\n")
 
 # **** LYCHREL CONJECTURE UTILITIES
+
+def add_single_digit(*digits):
+    """
+    Single digit addition (intermediate step of the reverse-and-add operation)
+    The function takes an arbitrary numbers of digits and returns the sum of
+    their respective positions within the CHARACTERS_SET string used to 
+    represent numbers
+
+    Parameters
+    ----------
+    *digits : List of characters
+        digits to add
+
+    Returns
+    -------
+    add_at_idx : INT
+        algebric sum of digits (in base 10)
+        
+    Example
+    -------
+    add_single_digit('1','F','6') will return 1+15+6 = 22 since:
+    '1' is at index 1 in CHARACTERS_SET
+    'F' is at index 15 in CHARACTERS_SET
+    '6' is at index 6 in CHARACTERS_SET
+    
+    """
+    add_at_idx = 0
+    for element in digits:
+        add_at_idx += CHARACTERS_SET_DICT[element]
+    
+    return add_at_idx
+
+
+def increment(number):
+    """
+    The function adds 1 to a Number instance in its specified base
+
+    Parameters
+    ----------
+    number : Number's instance'
+    
+    Returns
+    -------
+    result : Number's instance
+        unit-incremented number
+
+    """
+    # initialize new number
+    numlength = len(number.digits)
+    carry = '0'
+    result = ['0']*(numlength + 1)
+    
+    # Compute the addition at the least significant digit
+    add_at_zero = add_single_digit(number.digits[-1], '1')
+    
+    # Initialize the first addition hold
+    if add_at_zero >= number.base:
+        carry = '1'
+        
+        # Iterate through each digit of the number
+        for index, value in enumerate(number.digits):
+            i_index = (numlength - 1) - index # inverse index
+            
+            # Calculate the addition at the current index
+            add_at_index = add_single_digit(number.digits[i_index],result[i_index], carry)
+            
+            # Adjust the result and carry if necessary
+            if add_at_index >= number.base:
+                result[i_index+1] = CHARACTERS_SET[add_at_index % number.base]
+                result[i_index] = CHARACTERS_SET[CHARACTERS_SET_DICT[result[i_index]] + 1]
+            else:
+                result[i_index+1] = CHARACTERS_SET[add_at_index]
+                carry = '0'
+        
+        # Remove leading zero if present
+        if result[0] == '0':
+            result.pop(0)
+    else:
+        # If no carry is needed, simply copy the digits and replace the last digit
+        result = list(number.digits)
+        result[-1] = CHARACTERS_SET[add_at_zero]
+    
+    # Return the result as a new Number object
+    return Number(''.join(result),number.base)
+
+
+def init_seeds(start, base, **kwargs):
+    """
+    Creates a list of unit-incremented Number instances in a specified base
+
+    Parameters
+    ----------
+    start : String
+        list of digits representing the number to increment
+    
+    base : int
+        base of numbers
+    
+    **kwargs : Keyword arguments
+        'nb_iter' = (int) Number of succesive increment from the first seed
+        'limit_digits' = (int) maximum digits of generated seeds
+        'limit' = (string)
+
+    Returns
+    -------
+    seeds : List of Number instances
+        
+        
+    Example
+    -------
+    init_seeds('1', 2, limit_digits = 4) generates a list of seeds with maximum 
+    3 digits in base 2, eg. ['0','1', '10','11','100',101,'110','111']
+        
+
+    """
+    seeds = [Number(start, base)]
+    if 'nb_iter' in kwargs.keys():
+        for idx in range(1,kwargs['nb_iter']+1):
+            seeds.append(increment(seeds[idx-1]))
+    
+    
+    if 'limit_digits' in kwargs.keys():
+        idx = 1
+        while len(seeds[idx-1].digits) < kwargs['limit_digits']:
+            seeds.append(increment(seeds[idx-1]))
+            idx += 1
+            
+    if 'limit' in kwargs.keys():
+        idx = 1
+        while seeds[idx-1].digits != kwargs['limits']:
+            seeds.append(increment(seeds[idx-1]))
+            idx += 1
+    
+    return seeds
+
+
 def reverse_add(number):
     """
     Performs the reverse-add operation on the instance of a number object in an
