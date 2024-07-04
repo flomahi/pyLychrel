@@ -13,6 +13,12 @@ import csv
 import os
 
 ##**********************************************************************************
+result_path = './results/'
+isExist = os.path.exists(result_path)
+if not isExist:
+    os.makedirs(result_path)
+
+##**********************************************************************************
 ## Lists all Lychrel candidates for the first 10000 integers in base systems 10
 ## and 16. The number is considered a Lychrel candidate when no palindrome is
 ## found in the sequence of reverse-and-add operations after the stopping 
@@ -31,8 +37,6 @@ for base in [10,16]:
 # print outcomes
 print('\n***Lychrel candidates in base 10 ****\n', lychrel_candidates['10'])
 print('\n***Lychrel candidates in base 16 ****\n', lychrel_candidates['16'])
-##**********************************************************************************
-
 ##**********************************************************************************
 ## Compute threads for different versions of 196 in base systems 2, 10 and 16 
 
@@ -65,17 +69,10 @@ for thread in lt.thread_lychrel(base10_number, iter_depth=40):
       print(thread)
 
 ##**********************************************************************************
-
-##**********************************************************************************
 ## Save sequence in ASCII and export thread as a Graph in GRAPHML format
 # Example 1:
 # Save threads in ASCII and .graphml for the first 1000 natural numbers 
 # expressed in base systems 2 to 10
-result_path = './results/'
-isExist = os.path.exists(result_path)
-if not isExist:
-    os.makedirs(result_path)
-
 for base in range(2,11):
     print('\n** PROCESSING BASE {}\n'.format(base))
     seeds = lt.init_seeds('1', base, nb_iter = 10000)
@@ -96,7 +93,6 @@ for base in range(10,11):
     lt.save_sequence_ascii(filename_seq, seed, iter_depth = max_iter)
     graph_filename = result_path + 'seq_196_{}iterations_base_{}.graphml'.format(max_iter, base)
     lt.export_graph(filename_seq, graph_filename)
-##**********************************************************************************
 
 #**********************************************************************************
 ## Lists all Lychrel candidates for the first natural numbers of 5 digits in
